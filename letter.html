@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valentine Maker & Receiver</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #fff0f3;
+            --primary: #ff4d6d;
+            --secondary: #ff8fa3;
+        }
+
+        body {
+            background-color: var(--bg);
+            font-family: 'Quicksand', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h1 { font-family: 'Pacifico', cursive; color: var(--primary); }
+
+        /* Editor Styles */
+        .editor-form { display: flex; flex-direction: column; gap: 15px; }
+        
+        input, textarea, select {
+            padding: 12px;
+            border: 2px solid var(--secondary);
+            border-radius: 10px;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .color-presets { display: flex; justify-content: center; gap: 10px; margin: 10px 0; }
+        .dot { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+        .dot.active { border-color: #333; }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+
+        /* Viewer/Envelope Styles */
+        #viewer-mode { display: none; }
+        
+        .envelope-wrapper { position: relative; cursor: pointer; margin: 50px auto; width: 200px; height: 130px; }
+        .envelope { 
+            position: absolute; width: 100%; height: 100%; 
+            background: var(--primary); border-radius: 0 0 10px 10px; z-index: 2;
+        }
+        .envelope::before {
+            content: ""; position: absolute; top: 0; z-index: 2;
+            border-top: 65px solid transparent; border-left: 100px solid var(--secondary);
+            border-right: 100px solid var(--secondary); border-bottom: 65px solid var(--primary);
+        }
+        .flap {
+            position: absolute; top: 0; width: 0; height: 0;
+            border-left: 100px solid transparent; border-right: 100px solid transparent;
+            border-top: 70px solid var(--primary); transform-origin: top;
+            transition: 0.4s; z-index: 3;
+        }
+        .letter {
+            position: absolute; bottom: 5px; left: 10px; width: 180px; height: 110px;
+            background: white; padding: 10px; transition: 0.4s; z-index: 1;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 0.9rem;
+        }
+
+        .open .flap { transform: rotateX(180deg); z-index: 0; }
+        .open .letter { transform: translateY(-100px); z-index: 4; height: auto; min-height: 150px; }
+
+        #share-area { display: none; margin-top: 20px; word-break: break-all; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+    <div id="editor-mode" class="card">
+        <h1>Design Your Letter</h1>
+        <p>Write something sweet and choose a theme!</p>
+        <div class="editor-form">
+            <input type="text" id="input-name" placeholder="Your Name">
+            <textarea id="input-msg" placeholder="Write your secret message here..." rows="4"></textarea>
+            
+            <label>Choose a Theme Color:</label>
+            <div class="color-presets">
+                <div class="dot active" style="background: #ff4d6d;" onclick="setTheme('#ff4d6d', '#ff8fa3', '#fff0f3', this)"></div>
+                <div class="dot" style="background: #7209b7;" onclick="setTheme('#7209b7', '#b5179e', '#f72585', this)"></div>
+                <div class="dot" style="background: #2a9d8f;" onclick="setTheme('#2a9d8f', '#8ab17d', '#e9c46a', this)"></div>
+            </div>
+
+            <button class="btn" onclick="generateLink()">Create & Copy Link 🔗</button>
+        </div>
+        <div id="share-area">
+            <p><strong>Link Copied!</strong> Send this to your Valentine:</p>
+            <p id="generated-url" style="background: #eee; padding: 10px; border-radius: 5px;"></p>
+        </div>
+    </div>
+
+    <div id="viewer-mode" class="card">
+        <h1 id="view-header">A letter for you!</h1>
+        <div class="envelope-wrapper" id="env" onclick="this.classList.toggle('open')">
+            <div class="flap"></div>
+            <div class="letter">
+                <p><strong id="view-name"></strong> wrote:</p>
+                <p id="view-msg"></p>
+                <p>❤️✨</p>
+            </div>
+            <div class="envelope"></div>
+        </div>
+        <p>Click the envelope to open</p>
+        <button class="btn" onclick="window.location.search = ''">Create Your Own</button>
+    </div>
+
+    <script>
+        let currentTheme = { p: '#ff4d6d', s: '#ff8fa3', b: '#fff0f3' };
+
+        function setTheme(p, s, b, el) {
+            currentTheme = { p, s, b };
+            document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
+            el.classList.add('active');
+            document.documentElement.style.setProperty('--primary', p);
+            document.documentElement.style.setProperty('--secondary', s);
+            document.documentElement.style.setProperty('--bg', b);
+        }
+
+        function generateLink() {
+            const name = encodeURIComponent(document.getElementById('input-name').value);
+            const msg = encodeURIComponent(document.getElementById('input-msg').value);
+            const theme = encodeURIComponent(JSON.stringify(currentTheme));
+            
+            // Build the URL with "Parameters"
+            const url = `${window.location.origin}${window.location.pathname}?name=${name}&msg=${msg}&theme=${theme}`;
+            
+            document.getElementById('generated-url').innerText = url;
+            document.getElementById('share-area').style.display = 'block';
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(url);
+            alert("Link copied to clipboard! Send it to your partner.");
+        }
+
+        // CHECK IF LINK HAS DATA
+        window.onload = () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('name') && params.has('msg')) {
+                // Show Viewer Mode
+                document.getElementById('editor-mode').style.display = 'none';
+                document.getElementById('viewer-mode').style.display = 'block';
+                
+                // Fill data
+                document.getElementById('view-name').innerText = params.get('name');
+                document.getElementById('view-msg').innerText = params.get('msg');
+                document.getElementById('view-header').innerText = `From ${params.get('name')} ❤️`;
+                
+                // Load Theme
+                if (params.has('theme')) {
+                    const t = JSON.parse(decodeURIComponent(params.get('theme')));
+                    document.documentElement.style.setProperty('--primary', t.p);
+                    document.documentElement.style.setProperty('--secondary', t.s);
+                    document.documentElement.style.setProperty('--bg', t.b);
+                }
+            }
+        };
+    </script>
+</body>
+</html>
