@@ -155,7 +155,6 @@
         .sticker-options { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; align-items: center; }
         
         .sticker-option { 
-            /* cursor: pointer;  */
             cursor: grab; 
             transition: 0.2s; padding: 5px; border-radius: 10px; 
             display: flex; align-items: center; justify-content: center; font-size: 28px;
@@ -163,14 +162,6 @@
         .sticker-option img { width: 50px; height: 50px; object-fit: contain; }
         .sticker-option:hover { transform: scale(1.15); background: rgba(255,255,255,0.5); }
         .sticker-option:active {cursor: grabbing;}
-        /* .sticker-option.selected { background: white; box-shadow: 0 0 10px var(--primary); } */
-
-        .deselect-btn {
-            background: #eee; color: #444; padding: 8px 15px; border-radius: 15px; 
-            margin-bottom: 15px; border: 2px solid transparent; cursor: pointer; 
-            font-family: "Sour Gummy"; font-size: 14px; transition: 0.2s;
-        }
-        .deselect-btn.active { border-color: var(--primary); background: white; font-weight: bold; }
 
         /* --- Placed Stickers --- */
         .placed-sticker {
