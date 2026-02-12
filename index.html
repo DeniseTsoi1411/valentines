@@ -3,186 +3,405 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Valentine Maker & Receiver</title>
-    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #fff0f3;
-            --primary: #ff4d6d;
-            --secondary: #ff8fa3;
-        }
-
-        body {
-            background-color: var(--bg);
-            font-family: 'Quicksand', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            overflow-x: hidden;
-        }
-
-        .card {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        h1 { font-family: 'Pacifico', cursive; color: var(--primary); }
-
-        /* Editor Styles */
-        .editor-form { display: flex; flex-direction: column; gap: 15px; }
-        
-        input, textarea, select {
-            padding: 12px;
-            border: 2px solid var(--secondary);
-            border-radius: 10px;
-            font-family: inherit;
-            outline: none;
-        }
-
-        .color-presets { display: flex; justify-content: center; gap: 10px; margin: 10px 0; }
-        .dot { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
-        .dot.active { border-color: #333; }
-
-        .btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 50px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .btn:hover { transform: scale(1.05); filter: brightness(1.1); }
-
-        /* Viewer/Envelope Styles */
-        #viewer-mode { display: none; }
-        
-        .envelope-wrapper { position: relative; cursor: pointer; margin: 50px auto; width: 200px; height: 130px; }
-        .envelope { 
-            position: absolute; width: 100%; height: 100%; 
-            background: var(--primary); border-radius: 0 0 10px 10px; z-index: 2;
-        }
-        .envelope::before {
-            content: ""; position: absolute; top: 0; z-index: 2;
-            border-top: 65px solid transparent; border-left: 100px solid var(--secondary);
-            border-right: 100px solid var(--secondary); border-bottom: 65px solid var(--primary);
-        }
-        .flap {
-            position: absolute; top: 0; width: 0; height: 0;
-            border-left: 100px solid transparent; border-right: 100px solid transparent;
-            border-top: 70px solid var(--primary); transform-origin: top;
-            transition: 0.4s; z-index: 3;
-        }
-        .letter {
-            position: absolute; bottom: 5px; left: 10px; width: 180px; height: 110px;
-            background: white; padding: 10px; transition: 0.4s; z-index: 1;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 0.9rem;
-        }
-
-        .open .flap { transform: rotateX(180deg); z-index: 0; }
-        .open .letter { transform: translateY(-100px); z-index: 4; height: auto; min-height: 150px; }
-
-        #share-area { display: none; margin-top: 20px; word-break: break-all; font-size: 0.8rem; }
-    </style>
+    <title>Valentine Letter Maker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sour+Gummy:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,
+        <svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22>
+            <text y=%22.9em%22 font-size=%2290%22> 💌 </text>
+        </svg>">
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+    <p class="app-title">Write your Valentine's Letter</p>
 
-    <div id="editor-mode" class="card">
-        <h1>Design Your Letter</h1>
-        <p>Write something sweet and choose a theme!</p>
-        <div class="editor-form">
-            <input type="text" id="input-name" placeholder="Your Name">
-            <textarea id="input-msg" placeholder="Write your secret message here..." rows="4"></textarea>
-            
-            <label>Choose a Theme Color:</label>
-            <div class="color-presets">
-                <div class="dot active" style="background: #ff4d6d;" onclick="setTheme('#ff4d6d', '#ff8fa3', '#fff0f3', this)"></div>
-                <div class="dot" style="background: #7209b7;" onclick="setTheme('#7209b7', '#b5179e', '#f72585', this)"></div>
-                <div class="dot" style="background: #2a9d8f;" onclick="setTheme('#2a9d8f', '#8ab17d', '#e9c46a', this)"></div>
+    <div class="controls" id="entities-control">
+        <button class="btn" id="envelope-btn" onclick="summon('envelope')">envelope 💌</button>
+        <button class="btn" id="letter-btn" onclick="summon('letter')">letter 📝</button>
+    </div>
+    <div class="controls" id="flip-control">
+        <button class="btn" id="flip-btn" onclick="flipActive()">flip 🔄</button>
+    </div>
+
+    <div class="scene" id="envelope-scene">
+        <div class="card-3d" id="env-card">
+            <div class="front-face env-front">
+                <p>To My Valentine: </p>
+                <div style="border-bottom: 2px dashed white; width: 60%; height: 30px;">
+                    <textarea id="env-message" style="color: white; text-align: center; "></textarea>
+                </div>
             </div>
-
-            <button class="btn" onclick="generateLink()">Create & Copy Link 🔗</button>
-        </div>
-        <div id="share-area">
-            <p><strong>Link Copied!</strong> Send this to your Valentine:</p>
-            <p id="generated-url" style="background: #eee; padding: 10px; border-radius: 5px;"></p>
+            <div class="back-face env-back">
+                <div id="env-tri"></div>
+                <img src="stickers/waxseal_options_linen2.png" 
+                    style="margin: 78px 0 0 40%; width: 20%; height: 30%; position: relative; z-index:10;"> </img>
+            </div>
         </div>
     </div>
 
-    <div id="viewer-mode" class="card">
-        <h1 id="view-header">A letter for you!</h1>
-        <div class="envelope-wrapper" id="env" onclick="this.classList.toggle('open')">
-            <div class="flap"></div>
-            <div class="letter">
-                <p><strong id="view-name"></strong> wrote:</p>
-                <p id="view-msg"></p>
-                <p>❤️✨</p>
+    <div class="scene hidden" id="letter-scene">
+        <div class="card-3d" id="let-card">
+            <div class="front-face let-front">
+                <textarea id="letter-content" placeholder="Write your letter here..."></textarea>
             </div>
-            <div class="envelope"></div>
+            <div class="back-face let-back"></div>
         </div>
-        <p>Click the envelope to open</p>
-        <button class="btn" onclick="window.location.search = ''">Create Your Own</button>
+    </div>
+    <div class="tray-container">
+        <div class="tray-instructions">✨ drag & drop to place sticker | double click to remove ✨</div>
+        <!-- <button class="deselect-btn active" id="pointer-tool" onclick="deselectTool()">🖐️ Typing Mode </button> -->
+        <div class="sticker-options" id="sticker-shelf">
+            <!-- <span class="sticker-option" onclick="selectSticker(this, '❤️')">❤️</span>
+            <span class="sticker-option" onclick="selectSticker(this, '💖')">💖</span>
+            <span class="sticker-option" onclick="selectSticker(this, '✨')">✨</span>
+            <span class="sticker-option" onclick="selectSticker(this, '🌹')">🌹</span> -->
+            <span class="sticker-option">❤️</span>
+            <span class="sticker-option">💖</span>
+            <span class="sticker-option">✨</span>
+            <span class="sticker-option">🌹</span>
+        </div>
+    </div>
+    <button class="btn btn-save" onclick="generateLink()">save & get link 🔗</button>
+
+    <div class="hidden" id="link-display">
+        <p style="color: #333; font-size: 14px;">copy this link to send:</p>
+        <input type="text" id="link-url" readonly style="width: 90%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+    </div>
+
+    <div id="preview-modal" class="modal hidden">
+        <div class="modal-card preview-card">
+            <p style="color: var(--secondary); font-size: 18px; font-weight: bold;"> you just received a letter! click to view the letter </p>
+
+            <div class="scene" id="preview-env">
+                <div class="card-3d" id="preview-env-card">
+                    <div class="front-face env-front" readonly>
+                        <p>To My Valentine:</p>
+                        <div style="border-bottom:2px dashed white; width:60%; height:30px;">
+                            <textarea id="preview-name" style="text-align: center;" readonly></textarea>
+                        </div>
+                    </div>
+
+                    <!-- BACK -->
+                    <div class="back-face env-back">
+                        <div id="env-tri"></div>
+                        <img src="stickers/waxseal_options_linen2.png"
+                            style="margin: 78px 0 0 0; width: 20%; height: 30%; position: relative; z-index:10;">
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Letter (hidden at start) -->
+            <div class="scene hidden letter-slide" id="preview-let">
+                <div class="card-3d" id="preview-let-card">
+                    <div class="front-face let-front">
+                        <textarea id="preview-text" readonly ></textarea>
+                    </div>
+                    <div class="back-face let-back"></div>
+                </div>
+            </div>
+
+            <div style="margin-top:15px;">
+                <button class="btn" onclick="flipPreview()">flip 🔄</button>
+                <button class="btn" onclick="closePreview()"> write a reply ✨</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        let currentTheme = { p: '#ff4d6d', s: '#ff8fa3', b: '#fff0f3' };
+        let currentActive = 'env';
+        let stickerLog = []; 
+        let previewShowing = 'env';
 
-        function setTheme(p, s, b, el) {
-            currentTheme = { p, s, b };
-            document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
-            el.classList.add('active');
-            document.documentElement.style.setProperty('--primary', p);
-            document.documentElement.style.setProperty('--secondary', s);
-            document.documentElement.style.setProperty('--bg', b);
+        // photo stickers
+        const photoStickers = [
+            'stickers/suntoys1_edit.png', 
+            'stickers/belvo_edit.png',
+            'stickers/duck_clip_edit.png',
+            'stickers/joltik1_edit.png',
+            'stickers/mebs_edit.png',
+            'stickers/quackers_edit.png',
+            'stickers/quackling_edit.png',
+            'stickers/shroomduck_edit.png'
+        ];
+
+        // initialises the photoStickers onto the tray container
+        const shelf = document.getElementById('sticker-shelf');
+        photoStickers.forEach(path => {
+            const span = document.createElement('span');
+            span.className = 'sticker-option';
+            span.draggable = true;
+            span.innerHTML = `<img src="${path}" alt="sticker">`;
+            shelf.appendChild(span);
+        });
+
+        // changing letter size on input
+        function autoGrow(element) {
+            element.style.height = "auto";
+            element.style.height = (element.scrollHeight) + "px";
+        }
+        // changes between hidden and visible states of letter and envelope
+        function summon(type) {
+            currentActive = (type === 'envelope') ? 'env' : 'let';
+            document.getElementById('envelope-scene').classList.toggle('hidden', type !== 'envelope');
+            document.getElementById('letter-scene').classList.toggle('hidden', type !== 'letter');
+        }
+        // activates the .flipped class for the flip animation
+        function flipActive() {
+            const cardId = (currentActive === 'env') ? 'env-card' : 'let-card';
+            document.getElementById(cardId).classList.toggle('flipped');
         }
 
-        function generateLink() {
-            const name = encodeURIComponent(document.getElementById('input-name').value);
-            const msg = encodeURIComponent(document.getElementById('input-msg').value);
-            const theme = encodeURIComponent(JSON.stringify(currentTheme));
-            
-            // Build the URL with "Parameters"
-            const url = `${window.location.origin}${window.location.pathname}?name=${name}&msg=${msg}&theme=${theme}`;
-            
-            document.getElementById('generated-url').innerText = url;
-            document.getElementById('share-area').style.display = 'block';
-            
-            // Copy to clipboard
-            navigator.clipboard.writeText(url);
-            alert("Link copied to clipboard! Send it to your partner.");
-        }
+        // sticker placement logic - 
+            // places sticker exactly on mouse pointer position
+        function createSticker(container, val, x, y, isP, id, size, readOnly = false) {
+            let dragging = false;
+            let moved = false;
+            size = size || 48;
+            const div = document.createElement('div');
+            div.className = 'placed-sticker';
+            div.style.left = x + '%';
+            div.style.top = y + '%';
+            div.style.width = size + 'px';
+            div.style.height = 'auto';
 
-        // CHECK IF LINK HAS DATA
-        window.onload = () => {
-            const params = new URLSearchParams(window.location.search);
-            if (params.has('name') && params.has('msg')) {
-                // Show Viewer Mode
-                document.getElementById('editor-mode').style.display = 'none';
-                document.getElementById('viewer-mode').style.display = 'block';
-                
-                // Fill data
-                document.getElementById('view-name').innerText = params.get('name');
-                document.getElementById('view-msg').innerText = params.get('msg');
-                document.getElementById('view-header').innerText = `From ${params.get('name')} ❤️`;
-                
-                // Load Theme
-                if (params.has('theme')) {
-                    const t = JSON.parse(decodeURIComponent(params.get('theme')));
-                    document.documentElement.style.setProperty('--primary', t.p);
-                    document.documentElement.style.setProperty('--secondary', t.s);
-                    document.documentElement.style.setProperty('--bg', t.b);
-                }
+            // change cursor for readonly
+            if (readOnly) {
+                div.style.cursor = 'default';
+                div.style.pointerEvents = 'none'; 
             }
+
+            if (isP) {
+                div.innerHTML = `<img src="${val}" onerror="this.remove()">`;
+            } else {
+                div.innerHTML = `<span style="font-size: ${size}px">${val}</span>`;
+            }
+
+            // allowing manipulation (resizing and event listening) when not readonly
+            if (!readOnly) {
+                const resizer = document.createElement('div');
+                resizer.className = 'resizer';
+                div.appendChild(resizer);
+
+                resizer.onmousedown = function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    let startX = e.clientX;
+                    let startWidth = parseInt(document.defaultView.getComputedStyle(div).width, 10);
+
+                    function doDrag(ev) {
+                        let newWidth = startWidth + (ev.clientX - startX);
+                        if (newWidth > 10) {
+                            div.style.width = newWidth + 'px';
+                            const span = div.querySelector('span');
+                            if (span) span.style.fontSize = newWidth + 'px';
+                            let entry = stickerLog.find(s => s.id === id);
+                            if (entry) entry.size = newWidth;
+                        }
+                    }
+                    function stopDrag() {
+                        window.removeEventListener('mousemove', doDrag);
+                        window.removeEventListener('mouseup', stopDrag);
+                    }
+                    window.addEventListener('mousemove', doDrag);
+                    window.addEventListener('mouseup', stopDrag);
+                };
+
+                div.ondblclick = (e) => {
+                    e.stopPropagation();
+                    div.remove();
+                    stickerLog = stickerLog.filter(s => s.id !== id);
+                    moved = false;
+                };
+
+                div.onmousedown = function(e) {
+                    if (e.target.classList.contains('resizer')) return;
+                    dragging = true;
+                    e.stopPropagation();
+                    const rect = container.getBoundingClientRect();
+                    function move(ev) {
+                        moved = true;
+                        if (!dragging) return;
+                        const x = ((ev.clientX - rect.left) / rect.width) * 100;
+                        const y = ((ev.clientY - rect.top) / rect.height) * 100;
+                        div.style.left = x + '%';
+                        div.style.top = y + '%';
+                        let entry = stickerLog.find(s => s.id === id);
+                        if (entry) { entry.x = x; entry.y = y; }
+                    }
+                    function stop() {
+                        dragging = false;
+                        window.removeEventListener('mousemove', move);
+                        window.removeEventListener('mouseup', stop);
+                    }
+                    window.addEventListener('mousemove', move);
+                    window.addEventListener('mouseup', stop);
+                };
+            }
+
+            container.appendChild(div);
+        }
+        document.addEventListener('dragstart', function(e) {
+            const option = e.target.closest('.sticker-option');
+            if (!option) return;
+
+            const val = option.querySelector('img')?.src || option.textContent;
+            e.dataTransfer.setData("sticker", val);
+        });
+
+        document.querySelectorAll('.front-face, .back-face').forEach(face => {
+            face.ondragover = e => e.preventDefault();
+            face.ondrop = function(e) {
+                e.preventDefault();
+                const val = e.dataTransfer.getData("sticker");
+                if (!val) return;
+
+                const rect = this.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+                const id = Date.now();
+                const isPhoto = val.includes("stickers/");
+
+                createSticker(this, val, x, y, isPhoto, id, 48, false);
+                stickerLog.push({
+                    id, val, x, y, isPhoto,
+                    parentId: this.closest('.scene').id,
+                    isBack: this.classList.contains('back-face')
+                });
+            };
+        });
+
+        // save and load
+        function generateLink() {
+            const letterVal = document.getElementById('letter-content').value;
+            const envVal = document.getElementById('env-message').value;
+
+            const data = {
+                l: letterVal,
+                r: envVal,
+                s: stickerLog
+            };
+            const jsonString = JSON.stringify(data);
+            const encoded = btoa(unescape(encodeURIComponent(jsonString)));
+            
+            const url = window.location.origin + window.location.pathname + "?data=" + encoded;
+            
+            document.getElementById('link-url').value = url;
+            document.getElementById('link-display').classList.remove('hidden');
+        }
+
+        // if link contains '?data=...', load the letter
+        window.onload = function () {
+            const params = new URLSearchParams(window.location.search);
+            if (!params.has('data')) return;
+
+            const decodedData = decodeURIComponent(escape(atob(params.get('data'))));
+            const data = JSON.parse(decodedData);
+
+            // fill text
+            document.getElementById('preview-text').value = data.l;
+            document.getElementById('preview-name').value = data.r;
+
+            // render stickers
+            if (data.s) {
+                data.s.forEach(s => {
+                    const sceneId = s.parentId === "letter-scene" ? "preview-let" : "preview-env";
+                    const scene = document.getElementById(sceneId);
+                    const side = s.isBack ? '.back-face' : '.front-face:not(.back-face)';
+
+                    createSticker(
+                        scene.querySelector(side),
+                        s.val,
+                        s.x,
+                        s.y,
+                        s.isPhoto,
+                        s.id,
+                        s.size || 48,
+                        true
+                    );
+                });
+            }
+
+            document.getElementById('preview-env').onclick = () => {
+                const letScene = document.getElementById('preview-let');
+                letScene.classList.remove('hidden');
+                letScene.classList.add('letter-slide-in');
+                burstHearts();
+            };
+
+            document.getElementById('preview-modal').classList.remove('hidden');
         };
+
+        // flipping animation on the preview letter 
+        function flipPreview() {
+            if (previewShowing === 'env') {
+                document.getElementById('preview-env-card').classList.toggle('flipped');
+            } else {
+                document.getElementById('preview-let-card').classList.toggle('flipped');
+            }
+        }
+        document.getElementById('preview-let').addEventListener('click', () => {
+            previewShowing = 'let';
+        });
+        document.getElementById('preview-env').addEventListener('click', () => {
+            previewShowing = 'env';
+        });
+
+        function closePreview() {
+            document.getElementById('preview-modal').classList.add('hidden');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // heart burst animation when opening the letter
+        function burstHearts() {
+            const container = document.body;
+            for (let i = 0; i < 15; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'burst-heart';
+                heart.innerHTML = '💖';
+                
+                // Random directions for the burst
+                const tx = (Math.random() - 0.5) * 400 + "px";
+                const ty = (Math.random() - 0.5) * 400 + "px";
+                
+                heart.style.left = "50%";
+                heart.style.top = "50%";
+                heart.style.setProperty('--tx', tx);
+                heart.style.setProperty('--ty', ty);
+                
+                heart.style.animation = `heartFadeOut 1s forwards cubic-bezier(0.17, 0.67, 0.83, 0.67)`;
+                
+                container.appendChild(heart);
+                setTimeout(() => heart.remove(), 1000);
+            }
+}
+
+        // background animation
+        const emojis = ["💖", "✨", "🌸", "💌", "💕"]; 
+
+        setInterval(() => {
+            if (document.hidden) return;
+            const h = document.createElement('div');
+            h.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            h.style.position = "fixed";
+            h.style.zIndex = -1;
+            h.style.left = Math.random() * 100 + "vw";
+            h.style.top = "100vh";
+            h.style.opacity = 0.65;
+            h.style.pointerEvents = "none";
+            h.style.fontSize = (Math.random() * 80 + 10) + "px";
+
+            document.body.appendChild(h);
+            h.animate(
+                [
+                    { transform: "translateY(0)" },
+                    { transform: "translateY(-120vh)" }
+                ],
+                { duration: 15000 }
+            ).onfinish = () => h.remove();
+        }, 800);
+
     </script>
 </body>
 </html>
