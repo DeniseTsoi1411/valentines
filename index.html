@@ -48,10 +48,10 @@
     <div class="tray-container">
         <div class="tray-instructions">✨ drag & drop to place sticker | double click to remove ✨</div>
         <div class="sticker-options" id="sticker-shelf">
-            <span class="sticker-option" draggable="true">❤️</span>
-            <span class="sticker-option" draggable="true">💖</span>
-            <span class="sticker-option" draggable="true">✨</span>
-            <span class="sticker-option" draggable="true">🌹</span>
+            <span class="sticker-option">❤️</span>
+            <span class="sticker-option">💖</span>
+            <span class="sticker-option">✨</span>
+            <span class="sticker-option">🌹</span>
         </div>
     </div>
     <button class="btn btn-save" onclick="generateLink()">save & get link 🔗</button>
@@ -123,6 +123,10 @@
             span.draggable = true;
             span.innerHTML = `<img src="${path}" alt="sticker">`;
             shelf.appendChild(span);
+        });
+        // make all sticker options draggable (emoji + photo)
+        document.querySelectorAll('.sticker-option').forEach(option => {
+            option.draggable = true;
         });
 
         // changing letter size on input
@@ -234,8 +238,7 @@
         document.addEventListener('dragstart', function(e) {
             const option = e.target.closest('.sticker-option');
             if (!option) return;
-        
-            // Use .trim() to make sure we only get the emoji, not the spaces around it
+
             const val = option.querySelector('img')?.src || option.textContent.trim();
             e.dataTransfer.setData("sticker", val);
         });
@@ -246,23 +249,22 @@
                 e.preventDefault();
                 const val = e.dataTransfer.getData("sticker");
                 if (!val) return;
-            
+
                 const rect = this.getBoundingClientRect();
                 const x = ((e.clientX - rect.left) / rect.width) * 100;
                 const y = ((e.clientY - rect.top) / rect.height) * 100;
-            
-                const id = Date.now();
 
-                const isPhoto = val.includes("http") || val.includes("/") || val.includes(".png");
-            
+                const id = Date.now();
+                const isPhoto = val.includes("stickers/");
+
                 createSticker(this, val, x, y, isPhoto, id, 48, false);
-                
                 stickerLog.push({
                     id, val, x, y, isPhoto,
                     parentId: this.closest('.scene').id,
                     isBack: this.classList.contains('back-face')
                 });
             };
+        });
 
         // save and load
         function generateLink() {
@@ -397,8 +399,5 @@
     </script>
 </body>
 </html>
-
-
-
 
 
