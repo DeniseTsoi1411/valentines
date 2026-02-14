@@ -297,7 +297,7 @@
             const letterVal = document.getElementById('letter-content').value;
             const envVal = document.getElementById('env-message').value;
         
-            const response = await fetch("https://valentines-ws3b.onrender.com", {
+            const response = await fetch("https://valentines-ws3b.onrender.com/letters", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -335,7 +335,7 @@
             const id = params.get("letter");
         
             try {
-                const response = await fetch("https://valentines-ws3b.onrender.com/" + id);
+                const response = await fetch(`https://valentine-backend.onrender.com/letters/${id}`);
         
                 if (!response.ok) {
                     alert("Letter not found.");
@@ -452,6 +452,7 @@
     </script>
 </body>
 </html>
+
 
 
 
