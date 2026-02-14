@@ -293,28 +293,28 @@
         });
 
         // save and load
-        function generateLink() {
+        async function generateLink() {
             const letterVal = document.getElementById('letter-content').value;
             const envVal = document.getElementById('env-message').value;
         
-            const data = {
-                l: letterVal,
-                r: envVal,
-                s: stickerLog
-            };
-            
-            // Encoding logic
-            const jsonString = JSON.stringify(data);
-            const encoded = btoa(encodeURIComponent(jsonString).replace(/%([0-9A-F]{2})/g, (match, p1) => {
-                return String.fromCharCode('0x' + p1);
-            }));
-            
-            const url = window.location.origin + window.location.pathname + "?data=" + encoded;
-            
+            const response = await fetch("https://YOUR-BACKEND-URL/letters", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    letter: letterVal,
+                    recipient: envVal,
+                    stickers: stickerLog
+                })
+            });
+        
+            const data = await response.json();
+        
+            const url = window.location.origin + "?letter=" + data.id;
+        
             document.getElementById('link-url').value = url;
             document.getElementById('link-display').classList.remove('hidden');
-
         }
+
         function decodeDataParam(param) {
             const decoded = decodeURIComponent(
                 atob(param)
@@ -433,6 +433,7 @@
     </script>
 </body>
 </html>
+
 
 
 
