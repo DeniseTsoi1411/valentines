@@ -296,12 +296,14 @@
         function generateLink() {
             const letterVal = document.getElementById('letter-content').value;
             const envVal = document.getElementById('env-message').value;
-
+        
             const data = {
                 l: letterVal,
                 r: envVal,
                 s: stickerLog
             };
+            
+            // Encoding logic
             const jsonString = JSON.stringify(data);
             const encoded = btoa(encodeURIComponent(jsonString).replace(/%([0-9A-F]{2})/g, (match, p1) => {
                 return String.fromCharCode('0x' + p1);
@@ -311,50 +313,72 @@
             
             document.getElementById('link-url').value = url;
             document.getElementById('link-display').classList.remove('hidden');
+        
+            // --- NEW: Trigger the preview immediately ---
+            loadPreviewData(data); 
         }
 
         // if link contains '?data=...', load the letter
-        window.onload = function () {
-            const params = new URLSearchParams(window.location.search);
-            if (!params.has('data')) return;
+        // Function to actually fill the preview modal with data
+function loadPreviewData(data) {
+    // 1. Fill text
+    document.getElementById('preview-text').value = data.l || "";
+    document.getElementById('preview-name').value = data.r || "";
 
-            try {
-                const decodedData = decodeURIComponent(atob(params.get('data')).split('').map(c => {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
-                
-                const data = JSON.parse(decodedData);
+    // 2. Clear any old stickers from the preview faces first
+    document.querySelectorAll('.preview-card .placed-sticker').forEach(el => el.remove());
 
-                // fill text
-                document.getElementById('preview-text').value = data.l || "";
-                document.getElementById('preview-name').value = data.r || "";
+    // 3. Render stickers
+    if (data.s) {
+        data.s.forEach(s => {
+            const sceneId = s.parentId === "letter-scene" ? "preview-let" : "preview-env";
+            const scene = document.getElementById(sceneId);
+            const side = s.isBack ? '.back-face' : '.front-face:not(.back-face)';
 
-                // render stickers
-                if (data.s) {
-                    data.s.forEach(s => {
-                        const sceneId = s.parentId === "letter-scene" ? "preview-let" : "preview-env";
-                        const scene = document.getElementById(sceneId);
-                        const side = s.isBack ? '.back-face' : '.front-face:not(.back-face)';
+            createSticker(
+                scene.querySelector(side),
+                s.val,
+                s.x,
+                s.y,
+                s.isPhoto,
+                s.id,
+                s.size || 48,
+                true // readOnly
+            );
+        });
+    }
 
-                        createSticker(
-                            scene.querySelector(side),
-                            s.val,
-                            s.x,
-                            s.y,
-                            s.isPhoto,
-                            s.id,
-                            s.size || 48,
-                            true
-                        );
-                    });
-                }
+    // 4. Show the modal
+    document.getElementById('preview-modal').classList.remove('hidden');
+}
 
-                document.getElementById('preview-modal').classList.remove('hidden');
+// Keep this to handle people visiting the link
+window.onload = function () {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('data')) return;
 
-            } catch (e) {
-                console.error("Link Error:", e);
-                alert("Oh no! This letter link is broken or too long to load.");
-            }
+    try {
+        const decodedData = decodeURIComponent(atob(params.get('data')).split('').map(c => {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        
+        const data = JSON.parse(decodedData);
+        loadPreviewData(data); // Use our new function!
+
+    } catch (e) {
+        console.error("Link Error:", e);
+        alert("Oh no! This letter link is broken or too long to load.");
+    }
+};
+
+// Ensure the envelope click logic is outside the onload check 
+// so it works during immediate preview too!
+document.getElementById('preview-env').onclick = () => {
+    const letScene = document.getElementById('preview-let');
+    letScene.classList.remove('hidden');
+    letScene.classList.add('letter-slide-in');
+    burstHearts();
+};
 
             // This click event should stay inside or after the try-catch
             document.getElementById('preview-env').onclick = () => {
@@ -436,5 +460,6 @@
     </script>
 </body>
 </html>
+
 
 
