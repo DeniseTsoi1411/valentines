@@ -297,7 +297,7 @@
             const letterVal = document.getElementById('letter-content').value;
             const envVal = document.getElementById('env-message').value;
         
-            const response = await fetch("https://YOUR-BACKEND-URL/letters", {
+            const response = await fetch("https://valentines-ws3b.onrender.com", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -325,21 +325,40 @@
             return JSON.parse(decoded);
         }
         
-        function checkForIncomingLetter() {
+        document.addEventListener("DOMContentLoaded", async () => {
+        
             const params = new URLSearchParams(window.location.search);
-            if (!params.has('data')) return;
+        
+            // If no letter ID in URL, do nothing
+            if (!params.has("letter")) return;
+        
+            const id = params.get("letter");
         
             try {
-                const data = decodeDataParam(params.get('data'));
-                loadPreviewData(data);
-            } catch (e) {
-                console.error("Link Error:", e);
-                alert("Oh no! This letter link is broken or too long to load.");
-            }
-        }
+                const response = await fetch("https://valentines-ws3b.onrender.com/" + id);
         
-        document.addEventListener("DOMContentLoaded", () => {
-            checkForIncomingLetter();
+                if (!response.ok) {
+                    alert("Letter not found.");
+                    return;
+                }
+        
+                const data = await response.json();
+        
+                loadPreviewData({
+                    l: data.letter,
+                    r: data.recipient,
+                    s: data.stickers
+                });
+        
+            } catch (err) {
+                console.error("Fetch error:", err);
+                alert("Failed to load letter.");
+            }
+        });
+
+        
+        // document.addEventListener("DOMContentLoaded", () => {
+        //     checkForIncomingLetter();
         
             // Envelope click opens letter
             document.getElementById('preview-env').addEventListener('click', () => {
@@ -433,6 +452,7 @@
     </script>
 </body>
 </html>
+
 
 
 
