@@ -86,7 +86,7 @@ body {
     position: absolute !important;
 }
 
-#env-tri { 
+.env-tri { 
     width:100%; height:55%; 
     background: #fd7f96; 
     position:absolute; top:0; left:0;
@@ -260,8 +260,13 @@ textarea::-webkit-scrollbar-track {
     display: flex; justify-content: center; align-items: center; z-index: 999;
 }
 .modal-card {
-    background: white; width: 600px;
-    padding: 25px; border-radius: 20px; text-align: center; max-height: auto;
+    background: white;
+    width: min(600px, 92vw);
+    max-height: 90vh;
+    padding: 25px;
+    border-radius: 20px;
+    text-align: center;
+    overflow: auto;
 }
 
 @keyframes slideUp {
