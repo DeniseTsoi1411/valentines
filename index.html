@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Valentine Letter Maker</title>
+    <title>cute letter maker</title>
     <link href="https://fonts.googleapis.com/css2?family=Sour+Gummy:wght@100..900&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,
         <svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22>
@@ -13,7 +13,7 @@
 </head>
 
 <body>
-    <p class="app-title">Write your Valentine's Letter</p>
+    <p class="app-title">design your cute letter 💕</p>
 
     <div class="controls" id="entities-control">
         <button class="btn" id="envelope-btn" onclick="summon('envelope')">envelope 💌</button>
@@ -26,7 +26,7 @@
     <div class="scene" id="envelope-scene">
         <div class="card-3d" id="env-card">
             <div class="front-face env-front">
-                <p>To My Valentine: </p>
+                <p>to: </p>
                 <div style="border-bottom: 2px dashed white; width: 60%; height: 30px;">
                     <textarea id="env-message" style="color: white; text-align: center; "></textarea>
                 </div>
@@ -40,7 +40,7 @@
     <div class="scene hidden" id="letter-scene">
         <div class="card-3d" id="let-card">
             <div class="front-face let-front">
-                <textarea id="letter-content" placeholder="Write your letter here..."></textarea>
+                <textarea id="letter-content" placeholder="write your letter here..."></textarea>
             </div>
             <div class="back-face let-back"></div>
         </div>
@@ -68,7 +68,7 @@
             <div class="scene" id="preview-env">
                 <div class="card-3d" id="preview-env-card">
                     <div class="front-face env-front" readonly>
-                        <p>To My Valentine:</p>
+                        <p>to:</p>
                         <div style="border-bottom:2px dashed white; width:60%; height:30px;">
                             <textarea id="preview-name" style="text-align: center;" readonly></textarea>
                         </div>
@@ -522,5 +522,6 @@
     </script>
 </body>
 </html>
+
 
 
